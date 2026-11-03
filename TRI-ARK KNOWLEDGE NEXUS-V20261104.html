@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRI-ARK KNOWLEDGE NEXUS 三際方舟知識圖譜</title>
+    <style>
+        :root {
+            --bg-dark: #060913;
+            --panel-bg: #0d1322;
+            --panel-border: #1a243b;
+            --accent-blue: #00f0ff;
+            --accent-cyan: #38bdf8;
+            --accent-glow: rgba(0, 240, 255, 0.18);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --card-hover: #162036;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; min-height: 100vh; padding: 24px; display: flex; flex-direction: column; }
+
+        header { max-width: 1300px; width: 100%; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); padding-bottom: 20px; }
+        .logo { font-size: 1.6rem; font-weight: 900; color: var(--accent-blue); text-shadow: 0 0 12px var(--accent-glow); letter-spacing: 1.5px; }
+        .tagline { font-size: 0.9rem; color: var(--accent-cyan); font-weight: 600; letter-spacing: 1px; }
+
+        .top-nav { max-width: 1300px; width: 100%; margin: 0 auto 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .top-nav-btn { padding: 10px 20px; border-radius: 8px; background: var(--panel-bg); color: var(--text-sub); border: 1px solid var(--panel-border); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .top-nav-btn.active { background: rgba(0,240,255,0.1); color: var(--accent-blue); border-color: var(--accent-blue); }
+
+        .main-layout { max-width: 1300px; width: 100%; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 24px; flex: 1; }
+        .sidebar { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 20px; height: fit-content; }
+        .sidebar-title { font-size: 0.85rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 15px; }
+        .chapter-nav { display: flex; flex-direction: column; gap: 8px; }
+        .nav-btn { text-align: left; padding: 12px 14px; border-radius: 8px; background: transparent; color: var(--text-sub); border: 1px solid transparent; cursor: pointer; transition: all 0.2s; font-weight: 500; font-size: 0.9rem; }
+        .nav-btn:hover, .nav-btn.active { background: var(--card-hover); color: #fff; border-color: var(--accent-blue); box-shadow: 0 0 10px var(--accent-glow); }
+        .nav-btn .level-tag { display: block; font-size: 0.72rem; color: var(--accent-cyan); margin-top: 3px; font-family: monospace; }
+
+        .content-panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 12px; padding: 30px; min-height: 600px; width: 100%; }
+        .section-header { font-size: 1.4rem; color: #fff; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .section-header::before { content: ""; display: inline-block; width: 4px; height: 22px; background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .concept-card { background: #080e1b; border: 1px solid var(--panel-border); border-radius: 10px; padding: 20px; cursor: pointer; transition: all 0.3s; }
+        .concept-card:hover { border-color: var(--accent-blue); transform: translateY(-3px); box-shadow: 0 0 16px var(--accent-glow); }
+        .concept-card .meta { font-size: 0.75rem; color: var(--accent-cyan); font-family: monospace; margin-bottom: 8px; }
+        .concept-card h4 { font-size: 1.05rem; color: #fff; margin-bottom: 8px; }
+        .concept-card p { font-size: 0.85rem; color: var(--text-sub); line-height: 1.5; }
+
+        /* Detail Drawer */
+        .detail-view { display: none; background: #070c17; border: 1px solid var(--accent-blue); border-radius: 10px; padding: 28px; }
+        .detail-view.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+        .detail-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--panel-border); padding-bottom: 15px; }
+        .back-btn { background: var(--panel-border); color: var(--accent-blue); border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .detail-box { margin-bottom: 20px; }
+        .detail-box h5 { color: var(--accent-blue); font-size: 0.95rem; text-transform: uppercase; margin-bottom: 8px; }
+        .detail-box p, .detail-box ul { color: var(--text-main); font-size: 0.95rem; line-height: 1.7; }
+        .detail-box ul { padding-left: 20px; }
+        .quote-box { background: rgba(0, 240, 255, 0.05); padding: 18px; border-left: 4px solid var(--accent-blue); border-radius: 4px; }
+
+        /* Calculators Grid */
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; }
+        .calc-card { background: #080e1b; border: 1px solid var(--panel-border); border-radius: 10px; padding: 20px; }
+        .calc-card h3 { color: var(--accent-blue); font-size: 1.05rem; margin-bottom: 15px; border-bottom: 1px solid var(--panel-border); padding-bottom: 8px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 8px 12px; background: #04070f; border: 1px solid var(--panel-border); border-radius: 6px; color: #fff; font-family: monospace; }
+        .calc-res { background: rgba(0, 240, 255, 0.05); border-left: 3px solid var(--accent-blue); padding: 12px; margin-top: 15px; border-radius: 4px; }
+        .calc-res .val { font-size: 1.2rem; font-weight: bold; color: var(--accent-blue); font-family: monospace; }
+
+        /* Footer */
+        footer { max-width: 1300px; width: 100%; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid var(--panel-border); text-align: center; font-size: 0.85rem; color: var(--text-sub); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <div class="logo">TRI-ARK KNOWLEDGE NEXUS</div>
+            <div class="tagline">三際方舟知識圖譜︱理論 實踐 心法 計算</div>
+        </div>
+    </header>
+
+    <div class="top-nav">
+        <button class="top-nav-btn active" id="tab-theory" onclick="switchMainTab('theory')">📘 理論</button>
+        <button class="top-nav-btn" id="tab-practice" onclick="switchMainTab('practice')">🎯 實踐</button>
+        <button class="top-nav-btn" id="tab-mindset" onclick="switchMainTab('mindset')">🧠 心法</button>
+        <button class="top-nav-btn" id="tab-calc" onclick="switchMainTab('calc')">🧮 計算器</button>
+    </div>
+
+    <!-- 1. 理論 (Ch1 - Ch6) -->
+    <div id="view-theory" class="main-layout">
+        <div class="sidebar">
+            <div class="sidebar-title">理論章節選單</div>
+            <div class="chapter-nav">
+                <button class="nav-btn active" onclick="switchTheoryChapter('ch1', this)">第一章：市場全景與底層運作<span class="level-tag">MODULE L1</span></button>
+                <button class="nav-btn" onclick="switchTheoryChapter('ch2', this)">第二章：金融工具與資產估值<span class="level-tag">MODULE L2</span></button>
+                <button class="nav-btn" onclick="switchTheoryChapter('ch3', this)">第三章：現代投資組合理論<span class="level-tag">MODULE L3</span></button>
+                <button class="nav-btn" onclick="switchTheoryChapter('ch4', this)">第四章：保險與風險管理<span class="level-tag">MODULE L4</span></button>
+                <button class="nav-btn" onclick="switchTheoryChapter('ch5', this)">第五章：強積金與退休規劃<span class="level-tag">MODULE L5</span></button>
+                <button class="nav-btn" onclick="switchTheoryChapter('ch6', this)">第六章：按揭房產與負債管理<span class="level-tag">MODULE L6</span></button>
+            </div>
+        </div>
+
+        <div class="content-panel">
+            <div id="theory-category-view">
+                <div class="section-header" id="theory-chapter-title">第一章：市場全景與底層運作</div>
+                <div class="cards-grid" id="theory-cards-container"></div>
+            </div>
+
+            <!-- 詳細卡片閱讀器 (理論) -->
+            <div class="detail-view" id="theory-detail-view">
+                <div class="detail-top">
+                    <div>
+                        <span class="meta" id="theory-detail-level">MODULE LEVEL</span>
+                        <h2 id="theory-detail-title" style="color: #fff; margin-top: 4px;">-</h2>
+                    </div>
+                    <button class="back-btn" onclick="closeTheoryDetail()">← 返回模組選單</button>
+                </div>
+                <div class="detail-box">
+                    <h5>核心導讀與概念背景</h5>
+                    <p id="theory-detail-intro">-</p>
+                </div>
+                <div class="detail-box">
+                    <h5>關鍵知識點拆解</h5>
+                    <div id="theory-detail-points">-</div>
+                </div>
+                <div class="detail-box quote-box">
+                    <h5>💡 三際方舟心法提煉</h5>
+                    <p id="theory-detail-takeaway" style="color: #e2e8f0; font-weight: 500;">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 實踐 -->
+    <div id="view-practice" class="content-panel" style="display: none; max-width: 1300px; margin: 0 auto;">
+        <div class="section-header">實踐應用導航與落地指引</div>
+        <div class="cards-grid" id="practice-cards-container"></div>
+
+        <div class="detail-view" id="practice-detail-view" style="margin-top: 20px;">
+            <div class="detail-top">
+                <div>
+                    <span class="meta" id="practice-detail-level">PRACTICE LEVEL</span>
+                    <h2 id="practice-detail-title" style="color: #fff; margin-top: 4px;">-</h2>
+                </div>
+                <button class="back-btn" onclick="closePracticeDetail()">← 返回實踐模組</button>
+            </div>
+            <div class="detail-box">
+                <h5>實踐應用指引</h5>
+                <p id="practice-detail-intro">-</p>
+            </div>
+            <div class="detail-box">
+                <h5>落地步驟與操作要點</h5>
+                <div id="practice-detail-points">-</div>
+            </div>
+            <div class="detail-box quote-box">
+                <h5>💡 實踐心法提煉</h5>
+                <p id="practice-detail-takeaway" style="color: #e2e8f0; font-weight: 500;">-</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 心法 (Ch7 及核心思考框架) -->
+    <div id="view-mindset" class="content-panel" style="display: none; max-width: 1300px; margin: 0 auto;">
+        <div class="section-header">第七章：大師心法與歷史風暴及核心思考框架</div>
+        <div class="cards-grid" id="mindset-cards-container"></div>
+
+        <div class="detail-view" id="mindset-detail-view" style="margin-top: 20px;">
+            <div class="detail-top">
+                <div>
+                    <span class="meta" id="mindset-detail-level">MINDSET LEVEL</span>
+                    <h2 id="mindset-detail-title" style="color: #fff; margin-top: 4px;">-</h2>
+                </div>
+                <button class="back-btn" onclick="closeMindsetDetail()">← 返回心法模組</button>
+            </div>
+            <div class="detail-box">
+                <h5>核心思考框架與背景</h5>
+                <p id="mindset-detail-intro">-</p>
+            </div>
+            <div class="detail-box">
+                <h5>心法拆解與歷史印證</h5>
+                <div id="mindset-detail-points">-</div>
+            </div>
+            <div class="detail-box quote-box">
+                <h5>💡 核心心法提煉</h5>
+                <p id="mindset-detail-takeaway" style="color: #e2e8f0; font-weight: 500;">-</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 計算器 -->
+    <div id="view-calc" class="content-panel" style="display: none; max-width: 1300px; margin: 0 auto;">
+        <div class="section-header">實務金融估值、定價與保險需求計算器</div>
+        
+        <div class="calc-grid">
+            <!-- 債券計算器 -->
+            <div class="calc-card">
+                <h3>1. 債券綜合計算器 (Bond & YTM)</h3>
+                <div class="form-group"><label>債券面值 Par Value ($)</label><input type="number" id="b-face" value="1000"></div>
+                <div class="form-group"><label>票面利率 Coupon Rate (%)</label><input type="number" id="b-rate" value="5" step="0.1"></div>
+                <div class="form-group"><label>當前市場價格 Market Price ($)</label><input type="number" id="b-price" value="950"></div>
+                <div class="form-group"><label>距離到期年數 Years to Maturity</label><input type="number" id="b-years" value="5"></div>
+                <button onclick="calcBond()" style="width:100%; padding:8px; background:var(--accent-blue); color:#000; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">計算債券數據</button>
+
+                <div class="calc-res">
+                    <div>每年派息金額: <span class="val" id="res-b-coupon">$50.00</span></div>
+                    <div>至到期總利息: <span class="val" id="res-b-total">$250.00</span></div>
+                    <div>到期收益率 (YTM 近似): <span class="val" id="res-b-ytm">6.15%</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;" id="res-b-status">折價發行 (Discount Bond)</div>
+                </div>
+            </div>
+
+            <!-- DDM 股票股利折現 -->
+            <div class="calc-card">
+                <h3>2. 股票 DDM 股利折現模型 (Gordon Growth)</h3>
+                <div class="form-group"><label>當期每股股息 D0 ($)</label><input type="number" id="ddm-d0" value="2.0" step="0.1"></div>
+                <div class="form-group"><label>股息長期成長率 g (%)</label><input type="number" id="ddm-g" value="4.0" step="0.1"></div>
+                <div class="form-group"><label>投資者要求回報率 r (%)</label><input type="number" id="ddm-r" value="9.0" step="0.1"></div>
+                <button onclick="calcDDM()" style="width:100%; padding:8px; background:var(--accent-blue); color:#000; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">計算內在價值</button>
+
+                <div class="calc-res">
+                    <div>明年預期股息 D1: <span class="val" id="res-ddm-d1">$2.08</span></div>
+                    <div>股票理論內在價值 P0: <span class="val" id="res-ddm-p0">$41.60</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">公式: P0 = D1 / (r - g)</div>
+                </div>
+            </div>
+
+            <!-- DCF 現金流估值法 -->
+            <div class="calc-card">
+                <h3>3. 股票 DCF 現金流折現估值法</h3>
+                <div class="form-group"><label>第一年自由現金流 FCF1 ($ M)</label><input type="number" id="dcf-fcf" value="100"></div>
+                <div class="form-group"><label>前3年預期增長率 g (%)</label><input type="number" id="dcf-g" value="10"></div>
+                <div class="form-group"><label>貼現率/WACC r (%)</label><input type="number" id="dcf-wacc" value="8"></div>
+                <div class="form-group"><label>永續成長率 g_term (%)</label><input type="number" id="dcf-gt" value="2.5"></div>
+                <button onclick="calcDCF()" style="width:100%; padding:8px; background:var(--accent-blue); color:#000; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">計算估值現值</button>
+
+                <div class="calc-res">
+                    <div>企業價值現值估算 (PV): <span class="val" id="res-dcf-pv">$2,145 M</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">包含前3年預測期與永續終值 (Terminal Value) 貼現。</div>
+                </div>
+            </div>
+
+            <!-- CAPM 模型 -->
+            <div class="calc-card">
+                <h3>4. CAPM 資本資產定價模型</h3>
+                <div class="form-group"><label>無風險利率 Rf (%)</label><input type="number" id="capm-rf" value="4.0" step="0.1"></div>
+                <div class="form-group"><label>股票 Beta 值 (β)</label><input type="number" id="capm-beta" value="1.2" step="0.1"></div>
+                <div class="form-group"><label>市場預期回報率 Rm (%)</label><input type="number" id="capm-rm" value="8.5" step="0.1"></div>
+                <button onclick="calcCAPM()" style="width:100%; padding:8px; background:var(--accent-blue); color:#000; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">計算預期回報率</button>
+
+                <div class="calc-res">
+                    <div>股票預期回報率 E(Ri): <span class="val" id="res-capm-er">9.40%</span></div>
+                    <div>市場風險溢價 (ERP): <span class="val" id="res-capm-erp">4.50%</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">公式: E(Ri) = Rf + β * (Rm - Rf)</div>
+                </div>
+            </div>
+
+            <!-- 保險保額需求估算器 -->
+            <div class="calc-card">
+                <h3>5. 保險保障額度需求計算器 (人壽/重疾)</h3>
+                <div class="form-group"><label>家庭年支出/撫養費 ($)</label><input type="number" id="ins-expense" value="300000"></div>
+                <div class="form-group"><label>需要保障年數 (例如撫養至成年年數)</label><input type="number" id="ins-years" value="15"></div>
+                <div class="form-group"><label>目前未償還負債 (按揭/貸款) ($)</label><input type="number" id="ins-debt" value="2000000"></div>
+                <div class="form-group"><label>現有可動用金融資產與儲蓄 ($)</label><input type="number" id="ins-asset" value="500000"></div>
+                <button onclick="calcInsurance()" style="width:100%; padding:8px; background:var(--accent-blue); color:#000; border:none; font-weight:bold; border-radius:6px; cursor:pointer;">計算建議保額缺口</button>
+
+                <div class="calc-res">
+                    <div>建議人壽保障缺口: <span class="val" id="res-ins-gap">$6,000,000</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">計算公式: (年支出 × 年數) + 債務 - 現有資產</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 版權所有 三際方舟TRIARK 及 DARREN LAM。保留所有權利。</p>
+    </footer>
+
+    <script>
+        // 資料庫劃分：理論（Ch1-Ch6）
+        const theoryDatabase = {
+            ch1: [
+                {
+                    level: "L1-01",
+                    title: "金融市場生態系統全景",
+                    desc: "拆解資金供給方、金融中介與資金需求方的運作與關係。",
+                    intro: "金融市場本質上是資金過剩者（儲戶/投資者）與資金短缺者（企業/政府）之間進行資金高效配置的架構。",
+                    points: "<ul><li><b>資金供給者：</b> 個人儲戶、機構投資者（基金、保險資金）。</li><li><b>金融中介：</b> 商業銀行、投資銀行、證券交易所、保險公司。</li><li><b>資金需求者：</b> 借款企業、發債政府、按揭貸款者。</li></ul>",
+                    takeaway: "理解生態系是避開資本市場陷阱的第一步，清楚每一個角色在鏈條上的利益點。"
+                },
+                {
+                    level: "L1-02",
+                    title: "七大核心金融概念",
+                    desc: "收益、風險、流動性、期限、信用、槓桿與估值。",
+                    intro: "金融世界所有複雜產品與衍生品的底層邏輯，均基於這七大基石概念的組合與博弈。",
+                    points: "<ul><li><b>收益與風險：</b> 對等性原則，無風險即無超額收益。</li><li><b>流動性與期限：</b> 時間越長、變現越難，要求的補償越高。</li><li><b>信用與槓桿：</b> 槓桿放大收益同時成倍放大風險。</li><li><b>估值：</b> 所有資產的終極核心，價格是否偏離內在價值。</li></ul>",
+                    takeaway: "分析任何金融產品前，先用這七大指標進行多維度掃描。"
+                }
+            ],
+            ch2: [
+                {
+                    level: "L2-01",
+                    title: "存款與收益率曲線 (Yield Curve)",
+                    desc: "貨幣市場基礎、美債 2Y/10Y 利差歷史與倒掛預警機制。",
+                    intro: "收益率曲線是經濟週期的體溫計。正常情況下長債收益率高於短債。",
+                    points: "<ul><li><b>收益率曲線倒掛（Inversion）：</b> 2Y 收益率高於 10Y (2s10s 利差為負)，歷史上常預示經濟衰退。</li><li><b>存款保障機制：</b> 各國/地區對基礎定存提供的法定保護與流動性上限。</li></ul>",
+                    takeaway: "當 2s10s 利差出現深倒掛時，意味著市場正在定價央行未來被迫大幅降息。"
+                },
+                {
+                    level: "L2-02",
+                    title: "債券定價與 YTM 價格-收益率反向關係",
+                    desc: "到期收益率 (YTM) 計算邏輯與債券價格反向變動機制。",
+                    intro: "債券價格與市場利率/收益率呈極度嚴格的反比例關係。",
+                    points: "<ul><li><b>反向關係：</b> 當市場利率上升，舊債券的固定派息吸引力下降，價格必然下跌。</li><li><b>YTM 公式核心：</b> 將未來所有利息與本金流按折現率計算現值。</li></ul>",
+                    takeaway: "買債券不等於零風險，利率上升週期的長天期債券價格波動不亞於股票。"
+                },
+                {
+                    level: "L2-03",
+                    title: "股票估值框架 (P/E, DDM, DCF, EV/EBITDA)",
+                    desc: "GICS 11 大行業分類與三大核心估值模型應用場景。",
+                    intro: "股票投資的本質是購買企業未來現金流的折現。",
+                    points: "<ul><li><b>P/E (市盈率)：</b> 最常用，適合盈利穩定的成熟企業。</li><li><b>DCF (現金流折現)：</b> 理論最完善，適合預測現金流穩健企業。</li><li><b>EV/EBITDA：</b> 扣除資本結構干擾，適合重資產或跨國比較。</li></ul>",
+                    takeaway: "沒有絕對完美的估值工具，只有適合特定行業生命週期的估值方法。"
+                }
+            ],
+            ch3: [
+                {
+                    level: "L3-01",
+                    title: "CAPM 模型與無風險利率 (SML 圖)",
+                    desc: "資本資產定價模型、系統性風險 Beta 與證券市場線。",
+                    intro: "CAPM 定義了資產預期回報率與不可分散系統性風險 (Beta) 的線性關係。",
+                    points: "<ul><li><b>公式：</b> E(Ri) = Rf + β * (Rm - Rf)</li><li><b>Beta (β)：</b> β>1 代表波動大於大盤，β<1 代表防守型。</li><li><b>SML (證券市場線)：</b> 高於 SML 的資產代表被低估，低於則被高估。</li></ul>",
+                    takeaway: "投資者只應為無法被分散掉的系統性風險獲取風險補償。"
+                },
+                {
+                    level: "L3-02",
+                    title: "Markowitz 有效前沿與分散化",
+                    desc: "現代投資組合理論 (MPT)、資產相關性與最大化夏普比率。",
+                    intro: "馬科維茨證明了透過配置低相關性資產，能在不降低預期回報的前提下降低整體波動。",
+                    points: "<ul><li><b>有效前沿 (Efficient Frontier)：</b> 給定風險下的最大回報組合曲線。</li><li><b>相關係數 (ρ)：</b> 當資產間 ρ < 1 時，分散化紅利開始顯現。</li></ul>",
+                    takeaway: "分散投資是金融學中唯一免費的午餐。"
+                }
+            ],
+            ch4: [
+                {
+                    level: "L4-01",
+                    title: "保險底層邏輯：大數法則與風險池",
+                    desc: "保險如何透過精算與大數法則達成風險轉移與互助機制。",
+                    intro: "保險不是用來賺錢的工具，而是用固定的、可預測的小額成本（保費），去換取無法承受的大額極端風險對沖。",
+                    points: "<ul><li><b>大數法則 (Law of Large Numbers)：</b> 當樣本數量足夠大時，極端風險發生的概率會趨於穩定。</li><li><b>風險池 (Risk Pooling)：</b> 眾人繳納保費匯聚成資金池，補償少數遭受不幸的個體。</li><li><b>逆向選擇與道德風險：</b> 為何保險公司需要嚴格核保與告知義務。</li></ul>",
+                    takeaway: "買保險的本質是向市場購買「黑天鵝事件的防禦護甲」。"
+                },
+                {
+                    level: "L4-02",
+                    title: "人身與健康保障：人壽、重疾與高端醫療",
+                    desc: "解析定期壽險、終身壽險、重疾險與醫療險的功能與配置順序。",
+                    intro: "個人理財的金字塔底座必然是健康與人身保障，防止家庭財務槓桿因意外斷裂。",
+                    points: "<ul><li><b>定期壽險 (Term Life)：</b> 高槓桿純保障，適合家庭經濟支柱在撫養期配置。</li><li><b>重疾險 (Critical Illness)：</b> 收入損失補償型，一次性給付以應對重大疾病期間的家庭開支。</li><li><b>醫療險 (Medical Insurance)：</b> 實報實銷型，覆蓋住院、手術與標靶治療費用。</li></ul>",
+                    takeaway: "先保障後理財，醫療險與定期壽險是家庭財務安全網的雙槓桿。"
+                },
+                {
+                    level: "L4-03",
+                    title: "儲蓄型保單、年金險 (QDAP) 與傳承工具",
+                    desc: "剖析分紅保單、年金險及保單拆分分割傳承機制。",
+                    intro: "除了純保障型產品，保險在長期資產配置中扮演著現金流鎖定與資產傳承的角色。",
+                    points: "<ul><li><b>年金險 (Annuity)：</b> 解決長壽風險，提供終身穩定現金流。香港合資格延期年金 (QDAP) 更具扣稅優勢。</li><li><b>分紅儲蓄保單：</b> 透過保險公司的長期資產配置獲取非保證紅利，實現抗通脹與財富積累。</li><li><b>資產傳承功能：</b> 指定受益人規避遺產繼承繁瑣程序，支援更改受保人與保單拆分。</li></ul>",
+                    takeaway: "儲蓄險與年金險是用於鎖定未來數十年的無風險現金流與資產隔離。"
+                }
+            ],
+            ch5: [
+                {
+                    level: "L5-01",
+                    title: "強積金 MPF 基礎與資產類別",
+                    desc: "股票基金、債券基金、貨幣市場基金與預設投資策略 (DIS)。",
+                    intro: "MPF 是香港打工仔的基礎退休第一支柱，理解各類基金的風險收益特徵至關重要。",
+                    points: "<ul><li><b>DIS 預設投資策略：</b> 隨年齡自動調節股債比例（核心累積基金 vs 65歲後基金）。</li><li><b>資產類別：</b> 股票基金（高波動高預期回報）、債券基金與強積金保守基金。</li></ul>",
+                    takeaway: "MPF 不是稅，而是你長期退休投資組合的硬性組成部分。"
+                },
+                {
+                    level: "L5-02",
+                    title: "MPF 整合、扣稅與長壽風險對策",
+                    desc: "個人帳戶整合極速策略、TVC 自願性扣稅供款與退休提款選項。",
+                    intro: "透過主動管理與稅務優惠，能夠顯著提升退休後的資金儲備。",
+                    points: "<ul><li><b>帳戶整合：</b> 將多個保留帳戶集中至低收費、高性能的受託人平台。</li><li><b>TVC 扣稅供款：</b> 享有每年高達 $60,000 的扣稅額度。</li><li><b>提款管理：</b> 一次性提取、分期提取或轉入年金產品。</li></ul>",
+                    takeaway: "越早整合與利用扣稅供款，時間的複利效應越顯著。"
+                }
+            ],
+            ch6: [
+                {
+                    level: "L6-01",
+                    title: "物業按揭架構：H按 vs P按與壓力測試",
+                    desc: "香港樓宇按揭利率體系、供款與入息比率 (DTI) 審核。",
+                    intro: "買樓是普通人一生中使用的最大財務槓桿，必須精確計算按揭條款與風險能力。",
+                    points: "<ul><li><b>H按 (HIBOR-based)：</b> 以銀行同業拆息為基準，設有 P按封頂位。</li><li><b>P按 (Prime-based)：</b> 以最優惠利率為基準，利率相對穩定。</li><li><b>壓力測試與 DTI：</b> 評估利率上升時的供款承受力，防範斷供風險。</li></ul>",
+                    takeaway: "選擇按揭時務必釐清封頂利率與利率週期上升帶來的供款壓力。"
+                },
+                {
+                    level: "L6-02",
+                    title: "轉按、加按與負債整理 (DRP / IVA)",
+                    desc: "如何透過轉按提取現金、現金回贈與重組高息負債。",
+                    intro: "良好的負債管理能將高息信用卡/私貸轉化為低息長期貸款，防止財務崩潰。",
+                    points: "<ul><li><b>轉按與加按：</b> 利用樓價上升期重新估值，賺取現金回贈或釋放流動性。</li><li><b>債務重組 (DRP/IVA)：</b> 對於高息卡債進行重組談判，降低利息支出。</li></ul>",
+                    takeaway: "區分好負債（低息資產槓桿）與壞負債（高息消費貸），及時梳理流動性。"
+                }
+            ]
+        };
+
+        // 實踐模組資料
+        const practiceData = [
+            {
+                level: "PR-01",
+                title: "個人與家庭資產配置配置實務",
+                desc: "依據生命週期與風險偏好，執行多資產配置落地。",
+                intro: "將理論模型的資產配置方案轉化為具體的投資組合與定期再平衡機制。",
+                points: "<ul><li><b>核心-衛星策略 (Core-Satellite)：</b> 以指數基金/穩健資產為核心，搭配高潛力衛星資產。</li><li><b>定期再平衡 (Rebalancing)：</b> 每半年或一年調整權重，實現高賣低買紀律。</li></ul>",
+                takeaway: "紀律化執行再平衡比精準預測市場走勢更能帶來長遠收益。"
+            },
+            {
+                level: "PR-02",
+                title: "家庭風險防禦網實務建構",
+                desc: "一步步搭建家庭緊急預備金、保險保障與負債防火牆。",
+                intro: "從零開始構建抗禦突發事件（疾病、失業、市場暴跌）的財務防禦架構。",
+                points: "<ul><li><b>緊急預備金：</b> 儲備 3-6 個月生活必需開支於高流動性工具。</li><li><b>保障先後順序：</b> 先保家庭經濟支柱，後保其他成員；先純保障型後儲蓄型。</li></ul>",
+                takeaway: "建構完美的防禦網能讓你在市場劇烈波動時保持從容與理性。"
+            }
+        ];
+
+        // 資料庫劃分：心法（Ch7 及核心思考框架與伯克希爾研習）
+        const mindsetData = [
+            {
+                level: "L7-01",
+                title: "六位金融巨擘的哲學心法",
+                desc: "Graham, Markowitz, Sharpe, Fama, Buffett, Bogle。",
+                intro: "站在巨人的肩膀上汲取跨越時代的資本心法。",
+                points: "<ul><li><b>Graham：</b> 安全邊際與價值投資之父。</li><li><b>Markowitz & Sharpe：</b> 組合理論與 Sharpe Ratio 指標。</li><li><b>Fama：</b> 有效市場假說 (EMH)。</li><li><b>Buffett & Bogle：</b> 長期複利與低成本指數化投資。</li></ul>",
+                takeaway: "大師們的共同點：敬畏市場風險，堅持長期主義。"
+            },
+            {
+                level: "L7-02",
+                title: "金融歷史時間軸 (1929–2025)",
+                desc: "大蕭條、黑天鵝事件、08 次貸危機與現代流動性風暴。",
+                intro: "歷史不會重複細節，但總是押著相同的韻腳。",
+                points: "<ul><li><b>1929：</b> 大蕭條與槓桿崩潰。</li><li><b>2008：</b> 房貸衍生品流動性枯竭。</li><li><b>2020–2025：</b> 疫情無限 QE 到高利率全球再平衡。</li></ul>",
+                takeaway: "所有的金融危機本質上都是槓桿過高與流動性瞬間斷裂。"
+            },
+            {
+                level: "MS-01",
+                title: "三際方舟核心思考框架",
+                desc: "跨越過去、現在與未來的時空維度金融思考決策模型。",
+                intro: "運用三際觀點（過去歷史、現在估值、未來概率）對複雜金融決策進行多維審視。",
+                points: "<ul><li><b>觀過去：</b> 檢視歷史週期位置與黑天鵝演化軌跡。</li><li><b>審現在：</b> 精確計算當前安全邊際與現金流現值。</li><li><b>定未來：</b> 以概率思維預估風險回報比並預留容錯空間。</li></ul>",
+                takeaway: "不盲從市場情緒，站在時間的長河中做勝率最高的決策。"
+            },
+            {
+                level: "BRK-140",
+                title: "巴菲特的智慧",
+                desc: "這是過往關於伯克希爾股東大會、巴菲特與芒格的 140 篇長期研究文章，時間跨度為 1994–2025 年。",
+                intro: "這是過往關於伯克希爾股東大會、巴菲特與芒格的 140 篇長期研究文章，時間跨度為 1994–2025 年。",
+                points: `
+                <div style="font-size:0.9rem; line-height:1.7;">
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">🎯 企業生意模式與競爭優勢</p>
+                    <p><b>品牌、心智份額與定價權</b><br>
+                    💡 為什麼巴菲特說「心智份額」比「市場份額」更重要？ (1996)<br>
+                    🍔 為什麼巴菲特說麥當勞打不過可口可樂？ (1996)<br>
+                    🧠 巴菲特在 2000 年詳細解讀：如何通過「心智份額」判斷價值！ (2000)</p>
+                    <br>
+                    <p><b>商業模式與護城河</b><br>
+                    🏰 什麼是護城河？為什麼好的生意模式更重要？ (1995)<br>
+                    🍦 巴菲特在 1998 年闡述麥當勞和冰雪皇後的商業模式 (1998)<br>
+                    ⚠️ 巴菲特再談風險和護城河 (2000)<br>
+                    📈 為什麼巴菲特說，競爭優勢比短期利潤更重要 (2000)<br>
+                    ⚙️ 如何把「低成本」做到極致？GEICO 的競爭優勢和運營哲學 (2000)<br>
+                    🏪 如何理解「買股票就是買生意」？吃透這 1 個概念超過 80% 股民 (2001)<br>
+                    🔄 巴菲特是如何從「撿便宜」轉為「買好生意」的？ (2001)<br>
+                    📏 定價權的顆粒度：那 10 美分的生死線 (2005)<br>
+                    🏢 巴菲特：「買股票就是買公司」的另一種解釋 (2008)</p>
+                    <br>
+                    <p><b>行業競爭與商業前景</b><br>
+                    🚬 🚬 巴菲特：關於煙草業和鞋業的未來考慮 (1994, 2002)<br>
+                    🛑 為什麼巴菲特願意購買那些根本不會增長的公司？ (1994)<br>
+                    🎬 為什麼迪士尼也要做流媒體？看懂原創資產邏輯背後 3 年 8 倍復盤 (1997)<br>
+                    ✈️ 為什麼巴菲特說航空公司是個爛生意？避開本金歸零的陷阱 (1998)<br>
+                    ❌ 為什麼巴菲特說「發現一個偉大的行業，並不能保證你一定能賺錢」 (1999)</p>
+                    <br>
+                    <p><b>輕資產與高回報生意</b><br>
+                    💎 巴菲特和芒格心中的理想生意 (2003, 2011)<br>
+                    🚀 巴菲特：我們一生努力尋找的好生意是…… (2018)<br>
+                    🏁 用好生意的標準，完結伯克希爾股東大會解讀 (2025)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">💰 財務質量、現金流與資本回報</p>
+                    <p><b>現金流與資本支出</b><br>
+                    💵 巴菲特親述：「最好的生意是每年給你越來越多的現金，而不付出任何代價」 (1998)<br>
+                    🏛️ 如何構建你自己的「伯克希爾」模式？從建立你自己的現金流開始 (2001)<br>
+                    💧 巴菲特算帳法：從每天喝水量推導現金流 (2005)<br>
+                    🌊 巴菲特：低運營資金和浮存金，是我們的最愛 (2010)</p>
+                    <br>
+                    <p><b>財報與會計質量</b><br>
+                    🗑️ 為什麼說看不懂的財報就扔掉？ (1995)<br>
+                    🧱 為什麼芒格說「少花錢」是個小問題，卻阻礙了 80% 年輕人跨越階層？ (1998)<br>
+                    🏷️ 為什麼巴菲特寧買高價股也不碰便宜貨？揭秘財務真相 (1998)<br>
+                    📊 掌握 3 個核心數據，勝過學會計 (1999)<br>
+                    🧠 巴菲特 1986 年解讀會計思維：商業實踐優先 (2003)<br>
+                    🔮 有些利潤是變出來的，財報到底該怎麼看？ (2005)<br>
+                    🕵️ 如何通過財務報表，判斷管理層好壞 (2007)<br>
+                    ⚖️ 伯克希爾：內在價值和賬面價值的判斷標準 (2017)<br>
+                    📑 巴菲特：商業價值和會計處理是兩回事 (2018)</p>
+                    <br>
+                    <p><b>資本回報與經營指標</b><br>
+                    🌀 為什麼巴菲特說 20% 的 ROE 只是「會計幻覺」？ (1996)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">📐 內在價值、估值與安全邊際</p>
+                    <p><b>估值指標與價格比較</b><br>
+                    📜 格雷厄姆最重要的三大投資原則與用什麼方法沒有關係？ (1995)<br>
+                    ✖️ 為什麼巴菲特說他不按「幾倍 PE」買股票？ (1995)<br>
+                    🏡 為什麼把公司當「自家生意」看，估值瞬間就清晰了？ (1996)<br>
+                    🚫 為什麼巴菲特不賣股票卻勸你別買？少交學費的關鍵 (1996)<br>
+                    😱 人性從未改變，貪婪與恐懼依然主宰市場 (1998)<br>
+                    🔮 為什麼巴菲特認為「可預測性」是估值第一步？ (1998)<br>
+                    🎯 審計師：50 倍 PE 是死穴，這 100% 指標才是真底牌 (2006)<br>
+                    🔘 巴菲特：估值其實是道選擇題 (2007)</p>
+                    <br>
+                    <p><b>內在價值與現金流折現</b><br>
+                    🧮 企業的內在價值到底怎麼計算？ (1994)<br>
+                    🔑 伯克希爾哈撒韋成功，唯一公開的秘密 (1995)<br>
+                    💡 為什麼「理解越深刻，估值越簡單」？ (1996)<br>
+                    🌟 巴菲特和芒格對「內在價值」與「篩選標準」的經典解讀 (1997)<br>
+                    🏦 為什麼巴菲特選無風險利率折現？讓估值不再是玄學 (1997)<br>
+                    📐 為什麼巴菲特說 CAPM 是無稽之談？ (1998)<br>
+                    ⚖️ 價值，還是成長？ (2000)<br>
+                    ⏳ 如何 1 天內想通價格與價值的關係？ (2000)<br>
+                    🌫️ 內在價值非常重要，但也非常模糊 (2003)<br>
+                    📖 這就是內在價值和生意的全部 (2007)<br>
+                    🚩 巴菲特的低估信號：淨資產的 120% (2014)</p>
+                    <br>
+                    <p><b>安全邊際與買入價格</b><br>
+                    🛍️ 為什麼買得便宜才是硬道理？ (1997)<br>
+                    🚚 9800 磅卡車過橋理論，解決 100% 的估值糾結症 (1997)<br>
+                    ⚓ 「買得便宜」如何解決 99% 的心態問題 (1998)<br>
+                    🛢️ 巴菲特自述：當年如何撿了中石油的便宜 (2004)<br>
+                    🔓 某些情況下，可以不需要太多安全邊際 (2007)<br>
+                    🔍 我是如何評估企業和使用安全邊際 (2010)<br>
+                    💔 生意再好，買貴了，結果也不見得好 (2019)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">🔄 資本配置與股東回報</p>
+                    <p><b>留存、分紅、回購與股東回報</b><br>
+                    💸 公司是否該發股息？核心邏輯與實用啟示 (1995)<br>
+                    🪙 為什麼「到手 1 元」比「留存 1 元」更好？ (1996)<br>
+                    🚀 為什麼 99% 的人學不了巴菲特？暴富希望的幻滅 (1997)<br>
+                    🔄 復利，是如何體現在伯克希爾上的？ (2007)<br>
+                    🍏 投資蘋果的原因和對回購的看法 (2018)<br>
+                    🚪 股票回購，是財富積累的一道門檻 (2021)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">⚖️ 投資決策、機會成本與組合選擇</p>
+                    <p><b>機會成本與標的取捨</b><br>
+                    🧩 巴菲特：100% 格雷厄姆 + 100% 費雪 (1995)<br>
+                    ⏱️ 為什麼巴菲特和芒格選股只需 30 秒？《Value Line》的使用方法 (1998)<br>
+                    🎓 1998 年教給年輕人的投資課：「如何選擇一隻股票？」 (1998)<br>
+                    🇨🇳 巴菲特在 1999 年談中國的投資機會 (1999)<br>
+                    💰 巴菲特在 1999 年回答：如何賺到 300 億 (1999)<br>
+                    📈 小資金如何賺取 50%+ 的收益率 (2001)<br>
+                    🎯 為什麼巴菲特和芒格的收益率門檻是 10%？ (2003)<br>
+                    🤖 逼出 AI 極限後，我找到了比炒股更賺的事 (2005)<br>
+                    🔢 我們不會只根據「數字」購買任何公司 (2013)</p>
+                    <br>
+                    <p><b>篩選與買賣標準</b><br>
+                    ⏳ 為什麼你總是「有錢時沒機會，有機會時沒錢」？ (1996)<br>
+                    ⚔️ 芒格說「機會成本」能篩掉 98% 的爛股票 (1997)<br>
+                    ⛏️ 99 歲的芒格還在買煤炭：逆向投資的靈魂 (1998)<br>
+                    💊 為什麼巴菲特說，醫藥股「我們搞砸了」 (1999)<br>
+                    🥤 復盤可口可樂的投資思考，提了 4 個要點 (1999)<br>
+                    🍟 巴菲特：「賣掉麥當勞，是一個糟糕的決定。」 (1999)<br>
+                    🚦 如何判斷買入/賣出邏輯？ (2002)<br>
+                    🚬 芒格如何讓巴菲特放棄煙蒂，轉向偉大公司？ (2003)<br>
+                    🧠 看透事實的 8 個字，AI 算不出來 (2006)<br>
+                    ⏱️ 五分鐘做不出決定，五個月後也不行 (2008)<br>
+                    🚗 芒格：我們為什麼投資比亞迪 (2009)<br>
+                    📉 我不抄底，但我知道什麼時候賺錢 (2009)<br>
+                    🥀 我過去犯的錯：收購衰落的企業 (2012)<br>
+                    🛑 很多事我們不做，但我們能贏 (2012)<br>
+                    🏆 投資拼的不是方法，而是自己獨有的盈利空間 (2015)<br>
+                    ⏱️ 我們成功浪費了巴菲特 2 分鐘的時間 (2025)</p>
+                    <br>
+                    <p><b>集中、分散與組合選擇</b><br>
+                    🥤 芒格反問：「巴菲特走了，可口可樂就會賣不動嗎？」 (1996)<br>
+                    😰 為什麼你總是「想買又不敢買」？ (1996)<br>
+                    4️⃣ 為什麼他只重倉 4 隻股？大師的極簡投資法 (2004)<br>
+                    💡 小資金的投資者，有太多更好的股票選擇 (2008)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">🌊 市場波動、風險與投資心理</p>
+                    <p><b>市場先生與價格波動</b><br>
+                    ✌️ 投資中最重要的兩個點 (2008)<br>
+                    🎭 利用市場先生，是查理和我發財的秘密 (2012)</p>
+                    <br>
+                    <p><b>投機、泡沫與預測</b><br>
+                    🔮 我們做投資決策的方法依然和 30、40 年前一樣，而且我們不預測 (1994)<br>
+                    🫧 泡沫是人性造成的：警惕「被股價迷惑」的非理性繁榮 (1997)<br>
+                    🎲 投資，還是投機 (2000)<br>
+                    🧗 巴菲特再解釋：投資不是比誰做得更難 (2000)<br>
+                    🛑 別太相信「15% 的高增長率」 (2001)<br>
+                    📖 2002 年解釋：如何定義投資？ (2002)<br>
+                    🙅‍♂️ 為什麼巴菲特和芒格反對預測高增長率？ (2004, 2011)<br>
+                    🛑 我們不會去研究如何靠短期交易賺錢 (2021)</p>
+                    <br>
+                    <p><b>投資心理與情緒</b><br>
+                    🔄 逆向思維：幫你避開股市里 99% 的大坑 (1998)<br>
+                    📈 為什麼巴菲特年輕時放棄了畫圖表？治好你的焦慮 (1998)<br>
+                    🏎️ 巴菲特罕見的翻車事件 (2014)</p>
+                    <br>
+                    <p><b>風險定義與安全邊界</b><br>
+                    🦢 警惕高風險的道德黑天鵝 (1997)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">🏛️ 管理層、企業文化與治理</p>
+                    <p><b>伯克希爾組織結構與文化</b><br>
+                    🏢 伯克希爾哈撒韋的本質是什麼？ (1994)<br>
+                    🧬 巴菲特談伯克希爾的文化繼承與信息處理能力 (2021)</p>
+                    <br>
+                    <p><b>文化、接班與治理</b><br>
+                    👤 阿貝爾為何能成為巴菲特的接班人？ (2020)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">📚 能力圈、閱讀與長期學習</p>
+                    <p><b>學習方法與投資教育</b><br>
+                    🔄 重塑你的「成長觀」 (2001)<br>
+                    🏫 為什麼商學院在教授投資方面有很大缺陷 (2001)<br>
+                    💵 同樣 100 萬，我們能比以前幹得更好 (2012)<br>
+                    👶 孩子問你怎麼賺錢？看看巴菲特和芒格的觀點 (2014)<br>
+                    🎓 投資不需要高深的學問 (2018)</p>
+                    <br>
+                    <p><b>能力圈與獨立思考</b><br>
+                    ❓ 為什麼我們更應該向自己發問？ (1996)<br>
+                    ⏸️ 為什麼我勸你適時按下投資的「暫停鍵」？ (2001)<br>
+                    👑 如何成為一個偉大的投資者？ (2002)<br>
+                    ⭕ 從 3 方面解讀如何判斷能力圈 (2002)<br>
+                    👨‍🏫 巴菲特：我只教兩門課…… (2009)</p>
+                    <br>
+                    <p><b>閱讀年報與企業研究</b><br>
+                    🔢 為什麼投資不需要太多少數學知識？ (1995)<br>
+                    🌌 為什麼「找到自己的小宇宙」比複製巴菲特更重要？ (1996)<br>
+                    📖 為什麼閱讀對普通人很有用？ (1996)<br>
+                    ⏱️ 5 分鐘做決定的背後：40 年笨功夫 (1997)<br>
+                    ❤️ 巴菲特給的人生建議：「做自己喜歡的事會成功。」 (1997)<br>
+                    📰 60 多歲每年讀幾百份年報，你卻在刷短視頻 (1998)<br>
+                    🧮 巴菲特聊會計和金融入門 (1999)<br>
+                    🚀 閱讀是普通人投資的起點 (2003)<br>
+                    🛠️ 毀掉一個精英最快的方法，是逼他補短板 (2006)<br>
+                    📘 19 歲讀的這本書，我用了一輩子 (2007)<br>
+                    📈 持續閱讀，是穩賺不賠的長期個人投資 (2011)<br>
+                    🌱 出身決定大部分的命運，但不是成功的基石 (2015)</p>
+                    <br>
+
+                    <p style="margin-bottom:12px; color:var(--accent-cyan); font-weight:bold;">🧠 巴菲特給股東的信（專題總結）</p>
+                    <p>底層投資心法的核心，在於區分「賬面數字」與「商業實質」，將注意力完全聚焦於企業創造未來現金流的能力與確定性。<br><br>
+                    <b>📜 巴菲特給股東的信 (1961–1963 實戰精粹)</b><br>
+                    <i>資產質量的動態優化（Dempster 機械製造公司案例）</i><br>
+                    • <b>清算價值視野 (1961)：</b>巴菲特以每股 28 美元購入，估算清算價值為 35.25 美元。控制企業後，資產的實際可變現價值躍升為首位，市場報價反而不再重要。<br>
+                    • <b>資產結構的洗牌 (1962–1963)：</b>高明之處不在於總資產膨脹，而在於極致的資產去劣存優：<br>
+                    &nbsp;&nbsp;- 清理呆滯存貨（從 420 萬美元降至 98 萬美元）。<br>
+                    &nbsp;&nbsp;- 將收回的應收款與現金優先用於清空債務（負債從 232 萬美元降至 52 萬美元）。<br>
+                    &nbsp;&nbsp;- 將餘裕資金轉化為高收益的有價證券。<br>
+                    • <b>成果：</b>在總資產未大增的情況下，每股淨資產從 35.25 美元 暴增至 64.81 美元（兩年翻倍）。<br><br>
+                    <b>閱讀財報的核心心法</b><br>
+                    • <b>業務描述先行：</b>不了解商業模式前直接讀數字毫無意義，必須先讀懂「管理層討論與分析」。<br>
+                    • <b>全行業對比：</b>絕不單看一家公司，必須把同行業競爭者的年報一併看完，以釐清市場份額與競爭優勢。<br>
+                    • <b>親歷親為：</b>投資無法被二手總結或 AI 代替，必須自己花時間（單份年報 45 分鐘至數小時）進行獨立思考與邏輯梳理。<br>
+                    • <b>防範財務舞弊：</b>重點關注準備金的異常變動（如發行股票前降低準備金虛增利潤，之後再重新建立）。避雷無法依靠速成清單，關鍵在於評估企業領袖的正直品質。</p>
+                </div>
+                `,
+                takeaway: "底層投資心法的核心，在於區分「賬面數字」與「商業實質」，將注意力完全聚焦於企業創造未來現金流的能力與確定性。——《伯克希尔股东大会研究档案｜精选解读版》（第一版）by 年报其语"
+            }
+        ];
+
+        let currentTheoryCat = 'ch1';
+
+        // 頁籤切換
+        function switchMainTab(tab) {
+            document.getElementById('view-theory').style.display = tab === 'theory' ? 'grid' : 'none';
+            document.getElementById('view-practice').style.display = tab === 'practice' ? 'block' : 'none';
+            document.getElementById('view-mindset').style.display = tab === 'mindset' ? 'block' : 'none';
+            document.getElementById('view-calc').style.display = tab === 'calc' ? 'block' : 'none';
+
+            document.getElementById('tab-theory').classList.toggle('active', tab === 'theory');
+            document.getElementById('tab-practice').classList.toggle('active', tab === 'practice');
+            document.getElementById('tab-mindset').classList.toggle('active', tab === 'mindset');
+            document.getElementById('tab-calc').classList.toggle('active', tab === 'calc');
+
+            if (tab === 'practice') renderPracticeCards();
+            if (tab === 'mindset') renderMindsetCards();
+        }
+
+        // 理論章節切換
+        function switchTheoryChapter(catKey, btnEl) {
+            currentTheoryCat = catKey;
+            document.querySelectorAll('.sidebar .nav-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnEl) btnEl.classList.add('active');
+
+            const titleMap = {
+                ch1: '第一章：市場全景與底層運作 (Module L1)',
+                ch2: '第二章：金融工具與資產估值 (Module L2)',
+                ch3: '第三章：現代投資組合理論 (Module L3)',
+                ch4: '第四章：保險與風險管理 (Module L4)',
+                ch5: '第五章：強積金與退休規劃 (Module L5)',
+                ch6: '第六章：按揭房產與負債管理 (Module L6)'
+            };
+
+            document.getElementById('theory-chapter-title').innerText = titleMap[catKey];
+            closeTheoryDetail();
+            renderTheoryCards();
+        }
+
+        // 渲染理論卡片
+        function renderTheoryCards() {
+            const container = document.getElementById('theory-cards-container');
+            container.innerHTML = '';
+            const list = theoryDatabase[currentTheoryCat] || [];
+
+            list.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'concept-card';
+                card.onclick = () => openTheoryDetail(idx);
+                card.innerHTML = `
+                    <div class="meta">${item.level}</div>
+                    <h4>${item.title}</h4>
+                    <p>${item.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openTheoryDetail(index) {
+            const item = theoryDatabase[currentTheoryCat][index];
+            document.getElementById('theory-category-view').style.display = 'none';
+            const detailView = document.getElementById('theory-detail-view');
+            
+            document.getElementById('theory-detail-level').innerText = item.level;
+            document.getElementById('theory-detail-title').innerText = item.title;
+            document.getElementById('theory-detail-intro').innerText = item.intro;
+            document.getElementById('theory-detail-points').innerHTML = item.points;
+            document.getElementById('theory-detail-takeaway').innerText = item.takeaway;
+            
+            detailView.classList.add('active');
+        }
+
+        function closeTheoryDetail() {
+            document.getElementById('theory-category-view').style.display = 'block';
+            document.getElementById('theory-detail-view').classList.remove('active');
+        }
+
+        // 渲染實踐卡片
+        function renderPracticeCards() {
+            const container = document.getElementById('practice-cards-container');
+            container.innerHTML = '';
+            closePracticeDetail();
+
+            practiceData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'concept-card';
+                card.onclick = () => openPracticeDetail(idx);
+                card.innerHTML = `
+                    <div class="meta">${item.level}</div>
+                    <h4>${item.title}</h4>
+                    <p>${item.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openPracticeDetail(index) {
+            const item = practiceData[index];
+            const detailView = document.getElementById('practice-detail-view');
+            
+            document.getElementById('practice-detail-level').innerText = item.level;
+            document.getElementById('practice-detail-title').innerText = item.title;
+            document.getElementById('practice-detail-intro').innerText = item.intro;
+            document.getElementById('practice-detail-points').innerHTML = item.points;
+            document.getElementById('practice-detail-takeaway').innerText = item.takeaway;
+            
+            detailView.classList.add('active');
+            detailView.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closePracticeDetail() {
+            document.getElementById('practice-detail-view').classList.remove('active');
+        }
+
+        // 渲染心法卡片
+        function renderMindsetCards() {
+            const container = document.getElementById('mindset-cards-container');
+            container.innerHTML = '';
+            closeMindsetDetail();
+
+            mindsetData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'concept-card';
+                card.onclick = () => openMindsetDetail(idx);
+                card.innerHTML = `
+                    <div class="meta">${item.level}</div>
+                    <h4>${item.title}</h4>
+                    <p>${item.desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openMindsetDetail(index) {
+            const item = mindsetData[index];
+            const detailView = document.getElementById('mindset-detail-view');
+            
+            document.getElementById('mindset-detail-level').innerText = item.level;
+            document.getElementById('mindset-detail-title').innerText = item.title;
+            document.getElementById('mindset-detail-intro').innerHTML = item.intro;
+            document.getElementById('mindset-detail-points').innerHTML = item.points;
+            document.getElementById('mindset-detail-takeaway').innerText = item.takeaway;
+            
+            detailView.classList.add('active');
+            detailView.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function closeMindsetDetail() {
+            document.getElementById('mindset-detail-view').classList.remove('active');
+        }
+
+        // Calculators Logic
+        function calcBond() {
+            const F = parseFloat(document.getElementById('b-face').value);
+            const r = parseFloat(document.getElementById('b-rate').value) / 100;
+            const P = parseFloat(document.getElementById('b-price').value);
+            const N = parseFloat(document.getElementById('b-years').value);
+
+            const coupon = F * r;
+            const totalInterest = coupon * N;
+            const ytm = ((coupon + (F - P) / N) / ((F + P) / 2)) * 100;
+
+            document.getElementById('res-b-coupon').innerText = '$' + coupon.toFixed(2);
+            document.getElementById('res-b-total').innerText = '$' + totalInterest.toFixed(2);
+            document.getElementById('res-b-ytm').innerText = ytm.toFixed(2) + '%';
+            
+            let status = "面值發行 (Par)";
+            if(P < F) status = "折價發行 (Discount Bond)";
+            if(P > F) status = "溢價發行 (Premium Bond)";
+            document.getElementById('res-b-status').innerText = status;
+        }
+
+        function calcDDM() {
+            const D0 = parseFloat(document.getElementById('ddm-d0').value);
+            const g = parseFloat(document.getElementById('ddm-g').value) / 100;
+            const r = parseFloat(document.getElementById('ddm-r').value) / 100;
+
+            if(r <= g) {
+                alert("要求回報率 r 必須大於增長率 g！");
+                return;
+            }
+            const D1 = D0 * (1 + g);
+            const P0 = D1 / (r - g);
+
+            document.getElementById('res-ddm-d1').innerText = '$' + D1.toFixed(2);
+            document.getElementById('res-ddm-p0').innerText = '$' + P0.toFixed(2);
+        }
+
+        function calcDCF() {
+            const FCF1 = parseFloat(document.getElementById('dcf-fcf').value);
+            const g = parseFloat(document.getElementById('dcf-g').value) / 100;
+            const wacc = parseFloat(document.getElementById('dcf-wacc').value) / 100;
+            const gt = parseFloat(document.getElementById('dcf-gt').value) / 100;
+
+            const FCF2 = FCF1 * (1 + g);
+            const FCF3 = FCF2 * (1 + g);
+            
+            const PV1 = FCF1 / (1 + wacc);
+            const PV2 = FCF2 / Math.pow(1 + wacc, 2);
+            const PV3 = FCF3 / Math.pow(1 + wacc, 3);
+            
+            const TV = (FCF3 * (1 + gt)) / (wacc - gt);
+            const PV_TV = TV / Math.pow(1 + wacc, 3);
+
+            const totalPV = PV1 + PV2 + PV3 + PV_TV;
+            document.getElementById('res-dcf-pv').innerText = '$' + totalPV.toFixed(0) + ' M';
+        }
+
+        function calcCAPM() {
+            const Rf = parseFloat(document.getElementById('capm-rf').value);
+            const beta = parseFloat(document.getElementById('capm-beta').value);
+            const Rm = parseFloat(document.getElementById('capm-rm').value);
+
+            const erp = Rm - Rf;
+            const er = Rf + beta * erp;
+
+            document.getElementById('res-capm-er').innerText = er.toFixed(2) + '%';
+            document.getElementById('res-capm-erp').innerText = erp.toFixed(2) + '%';
+        }
+
+        function calcInsurance() {
+            const expense = parseFloat(document.getElementById('ins-expense').value);
+            const years = parseFloat(document.getElementById('ins-years').value);
+            const debt = parseFloat(document.getElementById('ins-debt').value);
+            const asset = parseFloat(document.getElementById('ins-asset').value);
+
+            const totalGap = (expense * years) + debt - asset;
+            document.getElementById('res-ins-gap').innerText = '$' + Math.max(0, totalGap).toLocaleString();
+        }
+
+        // Init Page
+        calcBond(); calcDDM(); calcDCF(); calcCAPM(); calcInsurance(); renderTheoryCards();
+    </script>
+</body>
+</html>
